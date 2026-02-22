@@ -1,0 +1,35 @@
+"""
+Game configuration and constants
+"""
+
+# Display
+SCREEN_WIDTH = 640
+SCREEN_HEIGHT = 480
+FPS = 60
+TILE_SIZE = 32
+
+# Grid dimensions
+GRID_WIDTH = 20
+GRID_HEIGHT = 15
+
+# Game rules
+LOOP_DURATION = 60.0  # seconds
+SNACKS_TO_WIN = 3
+
+# Colors
+COLOR_BG = (20, 20, 30)
+COLOR_FLOOR = (80, 70, 60)
+COLOR_WALL = (60, 60, 60)
+COLOR_FRIDGE = (200, 200, 220)
+COLOR_PLAYER = (150, 150, 150)
+COLOR_PLAYER_EYES = (50, 50, 50)
+COLOR_NPC = (255, 180, 180)
+COLOR_SNACK = (255, 200, 50)
+COLOR_TEXT = (255, 255, 255)
+COLOR_DANGER = (255, 100, 100)
+COLOR_SAFE = (100, 255, 100)
+
+# Gameplay
+PLAYER_SPEED = 2  # tiles per second
+NPC_SPEED = 1.5
+VISION_RANGE = 4  # tiles
