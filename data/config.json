@@ -1,0 +1,52 @@
+{
+  "game": {
+    "loop_duration": 60,
+    "detection_threshold": 100
+  },
+  "player": {
+    "speed": 4,
+    "max_noise": 100
+  },
+  "snacks": [
+    {
+      "name": "Cheese",
+      "value": 10,
+      "rarity": "common"
+    },
+    {
+      "name": "Leftover Pizza",
+      "value": 25,
+      "rarity": "uncommon"
+    },
+    {
+      "name": "Birthday Cake",
+      "value": 50,
+      "rarity": "rare"
+    },
+    {
+      "name": "Legendary Sandwich",
+      "value": 100,
+      "rarity": "legendary"
+    }
+  ],
+  "unlockables": [
+    {
+      "id": "dash",
+      "name": "Trash Dash",
+      "description": "Quick burst of speed",
+      "cost": 50
+    },
+    {
+      "id": "silent_paws",
+      "name": "Silent Paws",
+      "description": "Reduced noise generation",
+      "cost": 100
+    },
+    {
+      "id": "time_sense",
+      "name": "Time Sense",
+      "description": "See NPC patrol routes",
+      "cost": 150
+    }
+  ]
+}
