@@ -6,11 +6,22 @@ A roguelike game about a raccoon stealing snacks from a kitchen in repeating 60-
 
 You're a clever raccoon stuck in a temporal anomaly. Every 60 seconds, time resets, but you remember everything. Use your knowledge to master the perfect heist, avoid detection, and unlock new abilities.
 
-**Status:** ✅ Complete game logic (backend) | 🎯 Frontend coming soon
+**Status:** ✅ Complete game logic | ✅ Basic Pygame frontend working!
 
 ## ⚡ Quick Start
 
-### Play Now (CLI Version)
+### Play with Graphics (Pygame)
+```bash
+python3 src/main.py
+```
+
+**Controls:**
+- WASD / Arrow Keys - Move
+- E - Interact with objects
+- SPACE - Hide
+- ESC - Pause
+
+### Play CLI Version
 ```bash
 python src/cli_game.py
 ```
@@ -58,13 +69,15 @@ trash-panda-loops/
 
 ## ✨ Features
 
-- ✅ Complete game logic (no frontend required)
+- ✅ Complete game logic (fully functional backend)
+- ✅ Basic Pygame frontend with graphics
 - ✅ Time loop system with 60-second cycles
 - ✅ NPC AI with patrol and detection
 - ✅ Stealth and noise mechanics
 - ✅ Progression and unlock system
 - ✅ Save/load functionality
 - ✅ Comprehensive test suite (11/11 passing)
+- ✅ CLI version for testing
 
 ## 🚀 Next Steps
 

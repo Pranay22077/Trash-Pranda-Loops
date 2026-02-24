@@ -112,7 +112,12 @@ class Game:
         action_type = action.get('type')
         
         if action_type == 'move':
-            direction = action.get('direction')
+            direction = action.get('direction', [0, 0])
+            # Normalize direction if needed
+            if direction[0] != 0 or direction[1] != 0:
+                length = (direction[0]**2 + direction[1]**2)**0.5
+                if length > 0:
+                    direction = [direction[0]/length, direction[1]/length]
             self.player.move(direction, self.kitchen)
         
         elif action_type == 'interact':
