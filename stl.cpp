@@ -4,6 +4,7 @@ using namespace std;
 #include <algorithm>
 #include <string>
 #include <set>
+#include <map>
 
 int main(){
 
@@ -189,38 +190,60 @@ int main(){
 
     // ========================================== Question 11 =======================================
 
-    set <int> s1 = {1,2,3,4,5,6};
-    set <int> s2 = {4,5,6,7,8,9};
-    set <int> s3 = {10,11};
-    set <int> s4;
+    // set <int> s1 = {1,2,3,4,5,6};
+    // set <int> s2 = {4,5,6,7,8,9};
+    // set <int> s3 = {10,11};
+    // set <int> s4;
 
-    set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s4, s4.begin()));
-    for (auto x : s4){
-        cout << x << " ";
+    // set_union(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s4, s4.begin()));
+    // for (auto x : s4){
+    //     cout << x << " ";
+    // }
+    // cout << endl;
+
+    // set <int> s5;
+
+    // set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s5, s5.begin()));
+    // for (auto x : s5){
+    //     cout << x << " ";
+    // }
+    // cout << endl;
+
+    // set <int> s6;
+
+    // set_difference(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s6, s6.begin()));
+    // for (auto x : s6){
+    //     cout << x << " ";
+    // }
+    // cout << endl;
+
+    // ======================================== Question 11 =====================================
+
+    map <int, string> mpp;
+    mpp[0] = "zero";
+    mpp[1] = "one";
+    for (auto x : mpp){
+        cout << x.first << " --> " << x.second  << endl;
+    }
+    cout << endl;
+    mpp.insert({2, "two"});
+    for (auto x : mpp){
+        cout << x.first << " --> " << x.second  << endl;
     }
     cout << endl;
 
-    set <int> s5;
-
-    set_intersection(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s5, s5.begin()));
-    for (auto x : s5){
-        cout << x << " ";
+    auto it_f = mpp.find(2);
+    if (it_f != mpp.end()){
+        cout << "element found at index: " << distance(mpp.begin(), it_f) << " and value is " << it_f -> second;
     }
     cout << endl;
 
-    set <int> s6;
-
-    set_difference(s1.begin(), s1.end(), s2.begin(), s2.end(), inserter(s6, s6.begin()));
-    for (auto x : s6){
-        cout << x << " ";
+    mpp[2] = "TWO";
+    mpp.erase(1);
+    for (auto x : mpp){
+        cout << x.first << " --> " << x.second  << endl;
     }
     cout << endl;
-
-
-
-
-
     
-
 
 }

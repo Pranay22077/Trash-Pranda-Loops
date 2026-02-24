@@ -1,0 +1,72 @@
+:root {
+  /* Background Colors */
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1d2e;
+  --bg-card: #252a3a;
+  --bg-elevated: #2d3548;
+
+  /* Accent Colors */
+  --accent-primary: #00d9ff;
+  --accent-secondary: #b537f2;
+  --accent-warm: #ff6b35;
+  --accent-success: #4ecca3;
+  --accent-warning: #ffd93d;
+  --accent-danger: #ff6b6b;
+
+  /* Text Colors */
+  --text-primary: #f4f1de;
+  --text-secondary: #9ba4b5;
+  --text-muted: #6b7280;
+
+  /* Game Specific */
+  --snack-common: #ffd700;
+  --snack-uncommon: #4ecca3;
+  --snack-rare: #6c5ce7;
+  --snack-legendary: #fd79a8;
+
+  /* Fonts */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-game: 'Press Start 2P', cursive;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.font-game {
+  font-family: var(--font-game);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Utilities */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+}
+
+.glass-panel {
+  background: rgba(37, 42, 58, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

@@ -1,104 +1,106 @@
 # 🦝 Trash Panda Loops
 
-A roguelike game about a raccoon stealing snacks from a kitchen in repeating 60-second time loops.
+A time-loop stealth game where you play as a sneaky raccoon stealing snacks from a kitchen!
 
-## 🎮 What Is This?
+## 🎮 Play Now
 
-You're a clever raccoon stuck in a temporal anomaly. Every 60 seconds, time resets, but you remember everything. Use your knowledge to master the perfect heist, avoid detection, and unlock new abilities.
+**Live Demo**: [trashpandaloops.vercel.app](https://trashpandaloops.vercel.app)
 
-**Status:** ✅ Complete game logic | ✅ Basic Pygame frontend working!
+## 🎯 Game Features
 
-## ⚡ Quick Start
+- **Time Loop Mechanics**: 60-second loops to collect as many snacks as possible
+- **Stealth Gameplay**: Avoid detection by NPCs (humans and pets)
+- **Hiding System**: Press SPACE to hide and reduce detection
+- **Score System**: Collect snacks of different rarities for points
+- **Beautiful Graphics**: Hand-crafted pixel art style with smooth animations
 
-### Play with Graphics (Pygame)
+## 🕹️ Controls
+
+- **W/A/S/D** or **Arrow Keys** - Move the raccoon
+- **SPACE** - Hide (reduces detection)
+
+## 🏆 Scoring
+
+- **Common Snacks** (Yellow): 10 points
+- **Uncommon Snacks** (Green): 25 points  
+- **Rare Snacks** (Blue): 50 points
+- **Legendary Snacks** (Purple): 100 points
+
+## 🚀 Tech Stack
+
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Canvas**: HTML5 Canvas API
+- **Deployment**: Vercel
+
+## 💻 Local Development
+
 ```bash
-python3 src/main.py
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-**Controls:**
-- WASD / Arrow Keys - Move
-- E - Interact with objects
-- SPACE - Hide
-- ESC - Pause
-
-### Play CLI Version
-```bash
-python src/cli_game.py
-```
-
-**Commands:** `start`, `move up/down/left/right`, `interact`, `hide`, `status`, `unlocks`
-
-### Run Tests
-```bash
-python test_game_logic.py
-```
-
-### Watch Simulation
-```bash
-python simulate_game.py
-```
-
-## 🎯 Core Mechanics
-
-- **Time Loop:** 60 seconds per loop, collect snacks before time runs out
-- **Stealth:** Movement generates noise, NPCs detect via sight and sound
-- **Progression:** Earn points to unlock permanent abilities (Dash, Silent Paws, Time Sense)
-- **Risk vs Reward:** Better snacks are harder to reach and make more noise
-
-## 📚 Documentation
-
-- **[QUICKSTART.md](QUICKSTART.md)** - Detailed getting started guide
-- **[GAME_DESIGN.md](GAME_DESIGN.md)** - Complete game design document
-- **[GAME_LOGIC_DOCUMENTATION.md](GAME_LOGIC_DOCUMENTATION.md)** - Technical API reference
-- **[ROADMAP.md](ROADMAP.md)** - Development roadmap and future plans
-
-## 🏗️ Project Structure
+## 📦 Project Structure
 
 ```
-trash-panda-loops/
 ├── src/
-│   ├── game.py              # Main game controller
-│   ├── cli_game.py          # CLI interface
-│   ├── entities/            # Player, NPCs, snacks
-│   ├── world/               # Kitchen generation
-│   └── systems/             # Time loop, stealth, progression
-├── data/config.json         # Game configuration
-├── test_game_logic.py       # Test suite (11 tests)
-└── simulate_game.py         # Auto-play demo
+│   ├── app/
+│   │   ├── components/     # React components
+│   │   │   ├── GameCanvasSimple.tsx  # Main game logic
+│   │   │   ├── Navigation.tsx
+│   │   │   ├── HeroSection.tsx
+│   │   │   └── ...
+│   │   └── App.tsx         # Main app component
+│   ├── styles/
+│   │   └── index.css       # Global styles
+│   └── main.tsx            # Entry point
+├── index.html
+├── package.json
+├── vite.config.ts
+└── vercel.json
 ```
-
-## ✨ Features
-
-- ✅ Complete game logic (fully functional backend)
-- ✅ Basic Pygame frontend with graphics
-- ✅ Time loop system with 60-second cycles
-- ✅ NPC AI with patrol and detection
-- ✅ Stealth and noise mechanics
-- ✅ Progression and unlock system
-- ✅ Save/load functionality
-- ✅ Comprehensive test suite (11/11 passing)
-- ✅ CLI version for testing
-
-## 🚀 Next Steps
-
-**Phase 2:** Add Pygame frontend with graphics, animations, and UI
-
-See [ROADMAP.md](ROADMAP.md) for full development plan.
 
 ## 🎨 Game Design
 
-- **Genre:** Stealth Roguelike
-- **Loop Duration:** 60 seconds
-- **Perspective:** Top-down
-- **Art Style:** Pixel art (planned)
-- **Target:** Short sessions, high replayability
+- **Theme**: Stealth heist with cute raccoon protagonist
+- **Art Style**: Modern pixel art with smooth animations
+- **Color Palette**: Dark kitchen atmosphere with vibrant snack colors
+- **UI/UX**: Clean, modern interface with real-time HUD
+
+## 🔮 Future Features
+
+- [ ] Multiple kitchen layouts
+- [ ] Progression system with unlockable abilities
+- [ ] Persistent leaderboard
+- [ ] Sound effects and music
+- [ ] Mobile touch controls
+- [ ] More NPC types and behaviors
+- [ ] Power-ups and special abilities
+- [ ] Achievement system
+
+## 📝 License
+
+MIT License - Feel free to use and modify!
 
 ## 🤝 Contributing
 
-The game logic is complete and ready for frontend integration. Check [GAME_LOGIC_DOCUMENTATION.md](GAME_LOGIC_DOCUMENTATION.md) for API details.
+Contributions welcome! Feel free to open issues or submit PRs.
+
+## 🦝 Credits
+
+Created with ❤️ by the Trash Panda team
 
 ---
 
-**Built with Python** | **Game logic complete** | **Frontend coming soon**
-
-🦝 Happy trash panda heisting! 🦝
+**Enjoy the game!** 🎮✨
