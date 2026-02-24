@@ -1,41 +1,22 @@
 """
 Trash Panda Loops - Main Entry Point
+
+This is a placeholder for the Pygame frontend.
+For now, use cli_game.py or simulate_game.py to test the game logic.
 """
-import pygame
 import sys
-from game import Game
 
 def main():
-    pygame.init()
-    
-    # Game configuration
-    SCREEN_WIDTH = 800
-    SCREEN_HEIGHT = 600
-    FPS = 60
-    
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Trash Panda Loops")
-    clock = pygame.time.Clock()
-    
-    game = Game(screen)
-    
-    # Main game loop
-    running = True
-    while running:
-        dt = clock.tick(FPS) / 1000.0  # Delta time in seconds
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            game.handle_event(event)
-        
-        game.update(dt)
-        game.render()
-        
-        pygame.display.flip()
-    
-    pygame.quit()
-    sys.exit()
+    print("=" * 60)
+    print("TRASH PANDA LOOPS")
+    print("=" * 60)
+    print("\nGame logic is fully implemented!")
+    print("\nTo play/test the game, use:")
+    print("  python src/cli_game.py       - Interactive CLI version")
+    print("  python simulate_game.py      - Automated simulation")
+    print("  python test_game_logic.py    - Run test suite")
+    print("\nPygame frontend coming soon!")
+    print("=" * 60)
 
 if __name__ == "__main__":
     main()

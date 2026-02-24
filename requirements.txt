@@ -1,1 +1,3 @@
 pygame==2.5.2
+# Note: Pygame not required for game logic testing
+# Use cli_game.py or simulate_game.py to test without pygame
