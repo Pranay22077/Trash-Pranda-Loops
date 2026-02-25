@@ -1,3 +1,4 @@
+import { AuthProvider } from '../contexts/AuthContext';
 import { Navigation } from './components/Navigation';
 import { HeroSection } from './components/HeroSection';
 import { FeaturesSection } from './components/FeaturesSection';
@@ -10,18 +11,20 @@ import { Footer } from './components/Footer';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <Navigation />
-      <main>
-        <HeroSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <GameCanvasSimple />
-        <LeaderboardSection />
-        <StatsSection />
-        <CTASection />
-      </main>
-      <Footer />
-    </div>
+    <AuthProvider>
+      <div className="min-h-screen bg-[var(--bg-primary)]">
+        <Navigation />
+        <main>
+          <HeroSection />
+          <FeaturesSection />
+          <HowItWorksSection />
+          <GameCanvasSimple />
+          <LeaderboardSection />
+          <StatsSection />
+          <CTASection />
+        </main>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }

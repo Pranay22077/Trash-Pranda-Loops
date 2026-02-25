@@ -1,29 +1,25 @@
 #!/bin/bash
 
-echo "🦝 Deploying Trash Panda Loops to Vercel..."
-echo ""
+echo "🚀 Deploying Trash Panda Loops to GitHub..."
+
+cd /home/pranay22077/trash-panda-web
 
 # Add all changes
-echo "📦 Adding files to git..."
 git add .
 
-# Commit changes
-echo "💾 Committing changes..."
-git commit -m "Deploy: Update game files for Vercel"
+# Commit with message
+git commit -m "Complete game: minimalist design, 10 levels, working gameplay"
 
 # Push to GitHub
-echo "🚀 Pushing to GitHub..."
 git push origin main
 
-echo ""
 echo "✅ Pushed to GitHub!"
 echo ""
-echo "Now Vercel will automatically deploy your changes."
-echo "Check your deployment at: https://trashpandaloops.vercel.app"
+echo "📝 Next steps:"
+echo "1. Go to Vercel dashboard"
+echo "2. Add environment variables (see DEPLOYMENT_READY.md)"
+echo "3. Redeploy"
 echo ""
-echo "Or manually trigger deployment:"
-echo "1. Go to https://vercel.com/dashboard"
-echo "2. Select your project"
-echo "3. Click 'Redeploy' on the latest deployment"
-echo ""
-echo "🦝 Done!"
+echo "Environment variables to add in Vercel:"
+echo "VITE_SUPABASE_URL=https://kfkxhlcolwqpwjnmklma.supabase.co"
+echo "VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma3hobGNvbHdxcHdqbm1rbG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTAzNDgsImV4cCI6MjA4NzUyNjM0OH0.MuLwk5YIXSq_rZsy7Pkg_jqm6aPlhQNM8ydyzvHQzDg"

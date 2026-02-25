@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Particles from './backgrounds/Particles';
+import { useAuth } from '../../contexts/AuthContext';
+import { db } from '../../lib/database';
+import { Level } from '../../lib/supabase';
+import { LevelSelector } from './LevelSelector';
+import { AchievementsPanel } from './AchievementsPanel';
 
 interface Position {
   x: number;
@@ -25,6 +30,7 @@ interface NPC {
 }
 
 export function GameCanvasSimple() {
+  const { user, profile, refreshProfile } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerPos, setPlayerPos] = useState<Position>({ x: 100, y: 500 });
@@ -35,6 +41,20 @@ export function GameCanvasSimple() {
   const [detection, setDetection] = useState(0);
   const [score, setScore] = useState(0);
   const [showMessage, setShowMessage] = useState<string | null>(null);
+  
+  // Database integration states
+  const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showLevelSelector, setShowLevelSelector] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [levelComplete, setLevelComplete] = useState(false);
+  const [levelStats, setLevelStats] = useState({
+    snacksCollected: 0,
+    detectionCount: 0,
+    perfectStealth: true,
+  });
+  const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
+  const gameStartTime = useRef<number>(0);
   
   const animationFrameRef = useRef<number>();
   const gameLoopRef = useRef<number>();
@@ -66,36 +86,187 @@ export function GameCanvasSimple() {
     detectionHigh: '#ff6b6b',
   };
 
-  // Initialize game
-  const startGame = useCallback(() => {
-    setIsPlaying(true);
-    setPlayerPos({ x: 100, y: 500 });
-    setIsHiding(false);
-    setTimeRemaining(60);
-    setDetection(0);
-    setScore(0);
-    
-    // Spawn snacks
-    const newSnacks: Snack[] = [
-      { id: 1, position: { x: 200, y: 150 }, rarity: 'common', collected: false, value: 10 },
-      { id: 2, position: { x: 400, y: 300 }, rarity: 'uncommon', collected: false, value: 25 },
-      { id: 3, position: { x: 600, y: 200 }, rarity: 'rare', collected: false, value: 50 },
-      { id: 4, position: { x: 300, y: 450 }, rarity: 'legendary', collected: false, value: 100 },
-      { id: 5, position: { x: 650, y: 450 }, rarity: 'common', collected: false, value: 10 },
-    ];
-    setSnacks(newSnacks);
-    
-    // Spawn NPCs
-    const newNPCs: NPC[] = [
-      { id: 1, position: { x: 400, y: 200 }, type: 'human', state: 'patrolling', direction: 1, patrolIndex: 0 },
-      { id: 2, position: { x: 600, y: 400 }, type: 'pet', state: 'patrolling', direction: 1, patrolIndex: 0 },
-    ];
-    setNPCs(newNPCs);
-    
-    lastUpdateTime.current = Date.now();
-    setShowMessage('Collect snacks and avoid detection!');
-    setTimeout(() => setShowMessage(null), 2000);
-  }, []);
+  // Initialize game with level from database
+  const startGame = useCallback(async (level: Level) => {
+    if (!user) {
+      setShowMessage('Please sign in to play!');
+      setTimeout(() => setShowMessage(null), 2000);
+      return;
+    }
+
+    try {
+      // Create game session
+      const session = await db.createGameSession(user.id, level.id);
+      setSessionId(session.id);
+      setCurrentLevel(level);
+      gameStartTime.current = Date.now();
+
+      setIsPlaying(true);
+      setPlayerPos({ x: 100, y: 500 });
+      setIsHiding(false);
+      setTimeRemaining(level.time_limit);
+      setDetection(0);
+      setScore(0);
+      setLevelComplete(false);
+      setLevelStats({
+        snacksCollected: 0,
+        detectionCount: 0,
+        perfectStealth: true,
+      });
+      
+      // Spawn snacks based on level difficulty
+      const snackCount = level.difficulty === 'easy' ? 5 : 
+                        level.difficulty === 'medium' ? 7 : 
+                        level.difficulty === 'hard' ? 10 : 12;
+      
+      const newSnacks: Snack[] = [];
+      for (let i = 0; i < snackCount; i++) {
+        const rarity = Math.random() < 0.5 ? 'common' : 
+                      Math.random() < 0.7 ? 'uncommon' : 
+                      Math.random() < 0.9 ? 'rare' : 'legendary';
+        const value = rarity === 'common' ? 10 : 
+                     rarity === 'uncommon' ? 25 : 
+                     rarity === 'rare' ? 50 : 100;
+        
+        newSnacks.push({
+          id: i + 1,
+          position: { 
+            x: 150 + Math.random() * 600, 
+            y: 100 + Math.random() * 400 
+          },
+          rarity,
+          collected: false,
+          value,
+        });
+      }
+      setSnacks(newSnacks);
+      
+      // Spawn NPCs based on level difficulty
+      const npcCount = level.difficulty === 'easy' ? 2 : 
+                      level.difficulty === 'medium' ? 3 : 
+                      level.difficulty === 'hard' ? 4 : 5;
+      
+      const newNPCs: NPC[] = [];
+      for (let i = 0; i < npcCount; i++) {
+        newNPCs.push({
+          id: i + 1,
+          position: { 
+            x: 300 + Math.random() * 400, 
+            y: 200 + Math.random() * 300 
+          },
+          type: i % 2 === 0 ? 'human' : 'pet',
+          state: 'patrolling',
+          direction: Math.random() > 0.5 ? 1 : -1,
+          patrolIndex: 0,
+        });
+      }
+      setNPCs(newNPCs);
+      
+      lastUpdateTime.current = Date.now();
+      setShowMessage(`Level ${level.level_number}: ${level.name}`);
+      setTimeout(() => setShowMessage(null), 2000);
+    } catch (error) {
+      console.error('Error starting game:', error);
+      setShowMessage('Error starting game');
+      setTimeout(() => setShowMessage(null), 2000);
+    }
+  }, [user]);
+
+  // Complete level and save to database
+  const completeLevel = useCallback(async (won: boolean) => {
+    if (!user) {
+      setIsPlaying(false);
+      setShowMessage('Please sign in to save progress');
+      setTimeout(() => setShowMessage(null), 3000);
+      return;
+    }
+
+    if (!currentLevel || !sessionId) {
+      console.error('Missing level or session data', { currentLevel, sessionId });
+      setIsPlaying(false);
+      setShowMessage('Error: Game session not initialized');
+      setTimeout(() => setShowMessage(null), 3000);
+      return;
+    }
+
+    setIsPlaying(false);
+    setLevelComplete(true);
+
+    const timeTaken = (Date.now() - gameStartTime.current) / 1000;
+    const loopsCompleted = won ? 1 : 0;
+
+    try {
+      console.log('Completing level...', { won, score, levelStats });
+
+      // Update game session
+      await db.completeGameSession(sessionId, {
+        score,
+        snacksCollected: levelStats.snacksCollected,
+        timeTaken,
+        loopsCompleted,
+        detectionCount: levelStats.detectionCount,
+        perfectStealth: levelStats.perfectStealth,
+      });
+
+      // Calculate stars (1-3 based on performance)
+      let stars = 1;
+      if (won && levelStats.perfectStealth) stars = 3;
+      else if (won) stars = 2;
+
+      // Update level progress
+      await db.updateLevelProgress(user.id, currentLevel.id, {
+        score,
+        time: timeTaken,
+        completed: won,
+        stars,
+      });
+
+      // Award XP only if won
+      if (won) {
+        const xpReward = currentLevel.experience_reward;
+        await db.updateProfileStats(user.id, {
+          score,
+          snacks: levelStats.snacksCollected,
+          loops: loopsCompleted,
+          playTime: Math.floor(timeTaken),
+          level: currentLevel.level_number,
+          xp: xpReward,
+        });
+
+        // Check and unlock achievements
+        const newAchievements = await db.checkAndUnlockAchievements(user.id, {
+          snacksCollected: levelStats.snacksCollected,
+          perfectStealth: levelStats.perfectStealth,
+          timeTaken,
+          loopsCompleted,
+        });
+
+        if (newAchievements.length > 0) {
+          setUnlockedAchievements(newAchievements);
+        }
+
+        // Unlock next level
+        await db.unlockNextLevel(user.id, currentLevel.level_number);
+      }
+
+      // Refresh profile to show updated stats
+      await refreshProfile();
+
+      // Show completion message
+      if (won) {
+        setShowMessage(`🎉 Level Complete! +${currentLevel.experience_reward} XP`);
+      } else {
+        setShowMessage('Time\'s up! Try again?');
+      }
+      
+      console.log('Level completed successfully');
+    } catch (error: any) {
+      console.error('Error completing level:', error);
+      console.error('Error details:', error.message, error.stack);
+      setShowMessage(`Error: ${error.message || 'Failed to save progress'}`);
+      setTimeout(() => setShowMessage(null), 5000);
+    }
+  }, [user, currentLevel, sessionId, score, levelStats, refreshProfile]);
 
   // Game loop
   useEffect(() => {
@@ -110,11 +281,17 @@ export function GameCanvasSimple() {
       setTimeRemaining(prev => {
         const newTime = Math.max(0, prev - dt);
         if (newTime <= 0) {
-          setIsPlaying(false);
-          setShowMessage(`Loop Complete! Score: ${score}`);
+          completeLevel(false); // Time's up - player loses
         }
         return newTime;
       });
+
+      // Check if all snacks collected - WIN CONDITION
+      const allSnacksCollected = snacks.every(s => s.collected);
+      if (allSnacksCollected && snacks.length > 0) {
+        completeLevel(true); // Player wins by collecting all snacks!
+        return;
+      }
 
       // Update player movement
       let dx = 0;
@@ -169,14 +346,17 @@ export function GameCanvasSimple() {
           // Very close - rapid detection increase
           newNPC.state = 'alerted';
           setDetection(prev => Math.min(100, prev + 3));
+          setLevelStats(prev => ({ ...prev, perfectStealth: false }));
         } else if (dist < 120 && !isHiding) {
           // Medium distance - moderate detection increase
           newNPC.state = 'investigating';
           setDetection(prev => Math.min(100, prev + 1));
+          setLevelStats(prev => ({ ...prev, perfectStealth: false }));
         } else if (dist < 180 && !isHiding) {
           // Far distance - slow detection increase
           newNPC.state = 'investigating';
           setDetection(prev => Math.min(100, prev + 0.3));
+          setLevelStats(prev => ({ ...prev, perfectStealth: false }));
         } else {
           // Out of range - no detection
           newNPC.state = 'patrolling';
@@ -196,6 +376,10 @@ export function GameCanvasSimple() {
 
         if (dist < 30) {
           setScore(prev => prev + snack.value);
+          setLevelStats(prev => ({
+            ...prev,
+            snacksCollected: prev.snacksCollected + 1,
+          }));
           setShowMessage(`+${snack.value} points!`);
           setTimeout(() => setShowMessage(null), 1000);
           return { ...snack, collected: true };
@@ -206,8 +390,12 @@ export function GameCanvasSimple() {
 
       // Check for detection game over
       if (detection >= 100) {
-        setIsPlaying(false);
-        setShowMessage('Detected! Game Over');
+        setLevelStats(prev => ({
+          ...prev,
+          detectionCount: prev.detectionCount + 1,
+          perfectStealth: false,
+        }));
+        completeLevel(false); // Detected - player loses
       }
     };
 
@@ -218,7 +406,7 @@ export function GameCanvasSimple() {
         clearInterval(gameLoopRef.current);
       }
     };
-  }, [isPlaying, playerPos, isHiding, score, detection]);
+  }, [isPlaying, playerPos, isHiding, score, detection, snacks, completeLevel]);
 
   // Rendering
   useEffect(() => {
@@ -465,7 +653,7 @@ export function GameCanvasSimple() {
                 className="w-full h-full"
               />
 
-              {!isPlaying && (
+              {!isPlaying && !levelComplete && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -475,16 +663,114 @@ export function GameCanvasSimple() {
                     <div className="text-6xl">🦝</div>
                     <h3 className="text-3xl font-bold text-white">Trash Panda Loops</h3>
                     <p className="text-[var(--text-secondary)] max-w-md">
-                      Sneak through the kitchen, collect snacks, and escape before time runs out!
+                      Sneak through the kitchen, collect ALL snacks, and escape before time runs out!
                     </p>
+                    {user && profile && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-[var(--accent-primary)] font-bold">
+                          {profile.display_name || profile.username}
+                        </p>
+                        <p className="text-[var(--text-secondary)] text-sm">
+                          Rank: {profile.rank} | XP: {profile.experience_points}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={startGame}
-                    className="group relative px-12 py-6 rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white font-bold text-xl hover:scale-105 transition-all duration-300 shadow-lg shadow-[var(--accent-primary)]/50"
-                  >
-                    <span className="relative z-10">Start Game</span>
-                    <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                  </button>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setShowLevelSelector(true)}
+                      className="group relative px-12 py-6 rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white font-bold text-xl hover:scale-105 transition-all duration-300 shadow-lg shadow-[var(--accent-primary)]/50"
+                    >
+                      <span className="relative z-10">Select Level</span>
+                      <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                    </button>
+                    <button
+                      onClick={() => setShowAchievements(true)}
+                      className="group relative px-8 py-6 rounded-full bg-gradient-to-r from-[var(--accent-warning)] to-[var(--accent-success)] text-white font-bold text-xl hover:scale-105 transition-all duration-300 shadow-lg shadow-[var(--accent-warning)]/50"
+                    >
+                      <span className="relative z-10">🏆 Achievements</span>
+                      <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                    </button>
+                  </div>
+                  {!user && (
+                    <p className="text-[var(--accent-warning)] text-sm">
+                      Sign in to save your progress!
+                    </p>
+                  )}
+                </motion.div>
+              )}
+
+              {levelComplete && currentLevel && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/80 to-black/90 backdrop-blur-md flex flex-col items-center justify-center gap-6"
+                >
+                  <div className="text-center space-y-6 max-w-md">
+                    <div className="text-7xl">
+                      {snacks.every(s => s.collected) ? '🎉' : '⏰'}
+                    </div>
+                    <h3 className="text-4xl font-bold text-white">
+                      {snacks.every(s => s.collected) ? 'Level Complete!' : 'Time\'s Up!'}
+                    </h3>
+                    
+                    <div className="bg-black/50 rounded-2xl p-6 space-y-3">
+                      <div className="flex justify-between text-white">
+                        <span>Score:</span>
+                        <span className="font-bold text-[var(--accent-warning)]">{score}</span>
+                      </div>
+                      <div className="flex justify-between text-white">
+                        <span>Snacks:</span>
+                        <span className="font-bold">{levelStats.snacksCollected}/{snacks.length}</span>
+                      </div>
+                      <div className="flex justify-between text-white">
+                        <span>Stealth:</span>
+                        <span className={`font-bold ${levelStats.perfectStealth ? 'text-[var(--accent-success)]' : 'text-[var(--accent-error)]'}`}>
+                          {levelStats.perfectStealth ? '✓ Perfect' : '✗ Detected'}
+                        </span>
+                      </div>
+                      {snacks.every(s => s.collected) && (
+                        <div className="flex justify-between text-white border-t border-white/20 pt-3">
+                          <span>XP Earned:</span>
+                          <span className="font-bold text-[var(--accent-primary)]">+{currentLevel.experience_reward}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {unlockedAchievements.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gradient-to-r from-[var(--accent-warning)]/20 to-[var(--accent-success)]/20 rounded-2xl p-4 border-2 border-[var(--accent-warning)]"
+                      >
+                        <p className="text-[var(--accent-warning)] font-bold mb-2">🏆 New Achievements!</p>
+                        {unlockedAchievements.map((code, i) => (
+                          <p key={i} className="text-white text-sm">{code.replace('_', ' ').toUpperCase()}</p>
+                        ))}
+                      </motion.div>
+                    )}
+
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => {
+                          setLevelComplete(false);
+                          if (currentLevel) startGame(currentLevel);
+                        }}
+                        className="px-8 py-4 rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white font-bold hover:scale-105 transition-all duration-300"
+                      >
+                        Retry Level
+                      </button>
+                      <button
+                        onClick={() => {
+                          setLevelComplete(false);
+                          setShowLevelSelector(true);
+                        }}
+                        className="px-8 py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-all duration-300"
+                      >
+                        Level Select
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               )}
 
@@ -571,6 +857,58 @@ export function GameCanvasSimple() {
             </div>
           </div>
         </motion.div>
+
+        {/* Level Selector Modal */}
+        <AnimatePresence>
+          {showLevelSelector && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowLevelSelector(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="max-w-4xl w-full max-h-[80vh] overflow-y-auto"
+              >
+                <LevelSelector
+                  onSelectLevel={(level) => {
+                    setShowLevelSelector(false);
+                    startGame(level);
+                  }}
+                  onClose={() => setShowLevelSelector(false)}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Achievements Modal */}
+        <AnimatePresence>
+          {showAchievements && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowAchievements(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="max-w-4xl w-full max-h-[80vh] overflow-y-auto"
+              >
+                <AchievementsPanel onClose={() => setShowAchievements(false)} />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );

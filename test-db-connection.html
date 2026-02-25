@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Testing Supabase Connection</h1>
+    <div id="results"></div>
+    
+    <script>
+        const supabaseUrl = 'https://kfkxhlcolwqpwjnmklma.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtma3hobGNvbHdxcHdqbm1rbG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTAzNDgsImV4cCI6MjA4NzUyNjM0OH0.MuLwk5YIXSq_rZsy7Pkg_jqm6aPlhQNM8ydyzvHQzDg';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        async function testConnection() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                // Test 1: Check levels
+                const { data: levels, error: levelsError } = await supabase
+                    .from('levels')
+                    .select('*')
+                    .order('level_number');
+                
+                if (levelsError) {
+                    results.innerHTML += `<p style="color:red">❌ Levels Error: ${levelsError.message}</p>`;
+                } else {
+                    results.innerHTML += `<p style="color:green">✅ Levels: ${levels.length} found</p>`;
+                    results.innerHTML += `<pre>${JSON.stringify(levels, null, 2)}</pre>`;
+                }
+                
+                // Test 2: Check achievements
+                const { data: achievements, error: achError } = await supabase
+                    .from('achievements')
+                    .select('*');
+                
+                if (achError) {
+                    results.innerHTML += `<p style="color:red">❌ Achievements Error: ${achError.message}</p>`;
+                } else {
+                    results.innerHTML += `<p style="color:green">✅ Achievements: ${achievements.length} found</p>`;
+                }
+                
+                // Test 3: Check auth
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    results.innerHTML += `<p style="color:green">✅ Logged in as: ${user.email}</p>`;
+                } else {
+                    results.innerHTML += `<p style="color:orange">⚠️ Not logged in</p>`;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color:red">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>

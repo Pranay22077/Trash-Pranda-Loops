@@ -1,49 +1,97 @@
 import { RotateCcw, Cookie, Trophy, Zap, Clock, Eye, Rocket, Award } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const stats = [
-  {
-    icon: RotateCcw,
-    number: '127',
-    label: 'Total Loops',
-    trend: '+12 today',
-    color: 'var(--accent-primary)',
-  },
-  {
-    icon: Cookie,
-    number: '1,234',
-    label: 'Snacks Collected',
-    trend: '+89 today',
-    color: 'var(--accent-warning)',
-  },
-  {
-    icon: Trophy,
-    number: '2,450',
-    label: 'Best Score',
-    trend: 'Top 5%',
-    color: 'var(--accent-secondary)',
-  },
-  {
-    icon: Zap,
-    number: '3/5',
-    label: 'Abilities Unlocked',
-    progress: 60,
-    color: 'var(--accent-success)',
-  },
-];
-
-const achievements = [
-  { icon: '🎯', title: 'First Heist', unlocked: true, color: 'var(--accent-primary)' },
-  { icon: '⚡', title: 'Speed Demon', unlocked: true, color: 'var(--accent-warning)' },
-  { icon: '👻', title: 'Ghost', unlocked: true, color: 'var(--accent-secondary)' },
-  { icon: '🎁', title: 'Collector', unlocked: false, color: 'var(--text-muted)' },
-  { icon: '🏆', title: 'Veteran', unlocked: false, color: 'var(--text-muted)' },
-  { icon: '💎', title: 'Legendary Thief', unlocked: false, color: 'var(--text-muted)' },
-  { icon: '🔥', title: 'On Fire', unlocked: false, color: 'var(--text-muted)' },
-  { icon: '🌟', title: 'Perfect Run', unlocked: false, color: 'var(--text-muted)' },
-];
+import { useAuth } from '../../contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import { db } from '../../lib/database';
+import { UserAchievement } from '../../lib/supabase';
 
 export function StatsSection() {
+  const { user, profile } = useAuth();
+  const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadUserAchievements();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const loadUserAchievements = async () => {
+    if (!user) return;
+    try {
+      const achievements = await db.getUserAchievements(user.id);
+      setUserAchievements(achievements);
+    } catch (error) {
+      console.error('Error loading achievements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Use real profile data or defaults
+  const stats = [
+    {
+      icon: RotateCcw,
+      number: profile ? profile.total_loops_completed.toString() : '0',
+      label: 'Total Loops',
+      trend: profile ? `Level ${profile.highest_level}` : 'Not started',
+      color: 'var(--accent-primary)',
+    },
+    {
+      icon: Cookie,
+      number: profile ? profile.total_snacks_collected.toLocaleString() : '0',
+      label: 'Snacks Collected',
+      trend: profile ? `${profile.rank}` : 'Sign in to play',
+      color: 'var(--accent-warning)',
+    },
+    {
+      icon: Trophy,
+      number: profile ? profile.total_score.toLocaleString() : '0',
+      label: 'Total Score',
+      trend: profile ? `${profile.experience_points} XP` : 'Start playing',
+      color: 'var(--accent-secondary)',
+    },
+    {
+      icon: Zap,
+      number: profile ? `${userAchievements.length}/17` : '0/17',
+      label: 'Achievements',
+      progress: profile ? (userAchievements.length / 17) * 100 : 0,
+      color: 'var(--accent-success)',
+    },
+  ];
+
+  // Map of achievement codes to display info
+  const achievementDisplay: Record<string, { icon: string; title: string }> = {
+    first_snack: { icon: '🍪', title: 'First Snack' },
+    snack_collector: { icon: '🎯', title: 'Collector' },
+    snack_hoarder: { icon: '🏪', title: 'Hoarder' },
+    snack_master: { icon: '👑', title: 'Master' },
+    legendary_collector: { icon: '💎', title: 'Legendary' },
+    first_loop: { icon: '🔄', title: 'First Loop' },
+    loop_veteran: { icon: '🏆', title: 'Veteran' },
+    ghost: { icon: '👻', title: 'Ghost' },
+    speed_demon: { icon: '⚡', title: 'Speed Demon' },
+    perfect_stealth: { icon: '🌟', title: 'Perfect' },
+    master_thief: { icon: '🦝', title: 'Master Thief' },
+    time_lord: { icon: '⏰', title: 'Time Lord' },
+    completionist: { icon: '✨', title: 'Completionist' },
+    no_detection: { icon: '🎭', title: 'Invisible' },
+    quick_hands: { icon: '🤲', title: 'Quick Hands' },
+    night_owl: { icon: '🦉', title: 'Night Owl' },
+    trash_panda_elite: { icon: '🔥', title: 'Elite' },
+  };
+
+  const achievements = Object.entries(achievementDisplay).map(([code, display]) => ({
+    code,
+    icon: display.icon,
+    title: display.title,
+    unlocked: userAchievements.some(ua => (ua.achievement as any)?.code === code),
+    color: userAchievements.some(ua => (ua.achievement as any)?.code === code)
+      ? 'var(--accent-primary)'
+      : 'var(--text-muted)',
+  }));
   return (
     <section className="py-24 lg:py-32 relative overflow-hidden">
       {/* Background Gradient */}

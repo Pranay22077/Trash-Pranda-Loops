@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Particles from './backgrounds/Particles';
-import { useAuth } from '../../contexts/AuthContext';
-import { db } from '../../lib/database';
-import { Level } from '../../lib/supabase';
-import { Trophy, Star, ArrowRight } from 'lucide-react';
 
 interface Position {
   x: number;
@@ -30,24 +26,15 @@ interface NPC {
 
 export function GameCanvasSimple() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { user, profile, refreshProfile } = useAuth();
-  
-  // Game state
-  const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
-  const [levelNumber, setLevelNumber] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerPos, setPlayerPos] = useState<Position>({ x: 100, y: 500 });
   const [isHiding, setIsHiding] = useState(false);
   const [snacks, setSnacks] = useState<Snack[]>([]);
   const [npcs, setNPCs] = useState<NPC[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState(90);
+  const [timeRemaining, setTimeRemaining] = useState(60);
   const [detection, setDetection] = useState(0);
   const [score, setScore] = useState(0);
   const [showMessage, setShowMessage] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [gameStartTime, setGameStartTime] = useState(0);
-  const [showLevelComplete, setShowLevelComplete] = useState(false);
-  const [levelStats, setLevelStats] = useState<any>(null);
   
   const animationFrameRef = useRef<number>();
   const gameLoopRef = useRef<number>();
@@ -79,152 +66,36 @@ export function GameCanvasSimple() {
     detectionHigh: '#ff6b6b',
   };
 
-  // Start game with database integration
-  const startGame = useCallback(async () => {
-    if (!user) {
-      setShowMessage('Please sign in to play!');
-      setTimeout(() => setShowMessage(null), 2000);
-      return;
-    }
-
-    try {
-      // Load level from database
-      const level = await db.getLevelByNumber(levelNumber);
-      if (!level) {
-        setShowMessage('Level not found!');
-        return;
-      }
-      
-      setCurrentLevel(level);
-      
-      // Create game session
-      const session = await db.createGameSession(user.id, level.id);
-      setSessionId(session.id);
-      
-      setIsPlaying(true);
-      setPlayerPos({ x: 100, y: 500 });
-      setIsHiding(false);
-      setDetection(0);
-      setScore(0);
-      setTimeRemaining(level.time_limit);
-      setGameStartTime(Date.now());
-      setShowLevelComplete(false);
-      
-      // Spawn snacks based on level requirements
-      const newSnacks: Snack[] = [];
-      for (let i = 0; i < level.snacks_required; i++) {
-        newSnacks.push({
-          id: i + 1,
-          position: {
-            x: 150 + Math.random() * 600,
-            y: 100 + Math.random() * 400
-          },
-          rarity: i === level.snacks_required - 1 ? 'legendary' : 
-                 i >= level.snacks_required - 3 ? 'rare' :
-                 i >= level.snacks_required - 5 ? 'uncommon' : 'common',
-          collected: false,
-          value: i === level.snacks_required - 1 ? 100 :
-                 i >= level.snacks_required - 3 ? 50 :
-                 i >= level.snacks_required - 5 ? 25 : 10
-        });
-      }
-      setSnacks(newSnacks);
-      
-      // Spawn NPCs based on level
-      const newNPCs: NPC[] = [];
-      for (let i = 0; i < level.npc_count; i++) {
-        newNPCs.push({
-          id: i + 1,
-          position: {
-            x: 300 + i * 150,
-            y: 200 + i * 100
-          },
-          type: i % 2 === 0 ? 'human' : 'pet',
-          state: 'patrolling',
-          direction: 1
-        });
-      }
-      setNPCs(newNPCs);
-      
-      lastUpdateTime.current = Date.now();
-      setShowMessage(`Level ${level.level_number}: ${level.name}`);
-      setTimeout(() => setShowMessage(null), 2000);
-    } catch (error) {
-      console.error('Error starting game:', error);
-      setShowMessage('Error starting game');
-    }
-  }, [user, levelNumber]);
-
-  // Complete level and save to database
-  const completeLevel = useCallback(async (success: boolean) => {
-    if (!user || !sessionId || !currentLevel) return;
-
-    setIsPlaying(false);
-    const timeTaken = Math.floor((Date.now() - gameStartTime) / 1000);
-    const snacksCollected = snacks.filter(s => s.collected).length;
-    const perfectStealth = detection < 30;
-
-    try {
-      // Complete session
-      await db.completeGameSession(sessionId, {
-        score,
-        snacksCollected,
-        timeTaken,
-        loopsCompleted: 1,
-        detectionCount: Math.floor(detection),
-        perfectStealth
-      });
-
-      // Update user stats and award XP
-      await db.updateProfileStats(user.id, {
-        score,
-        snacks: snacksCollected,
-        loops: 1,
-        playTime: timeTaken,
-        level: levelNumber,
-        xp: currentLevel.experience_reward
-      });
-
-      // Update level progress
-      const stars = perfectStealth && success ? 3 : success ? 2 : 1;
-      await db.updateLevelProgress(user.id, currentLevel.id, {
-        score,
-        time: timeTaken,
-        completed: success,
-        stars
-      });
-
-      // Check achievements
-      await db.checkAndUnlockAchievements(user.id, {
-        snacksCollected,
-        perfectStealth,
-        timeTaken,
-        loopsCompleted: 1
-      });
-
-      // Unlock next level
-      if (success && levelNumber < 10) {
-        await db.unlockNextLevel(user.id, levelNumber);
-      }
-
-      // Refresh profile
-      await refreshProfile();
-
-      // Show completion screen
-      setLevelStats({
-        success,
-        score,
-        snacksCollected,
-        timeTaken,
-        perfectStealth,
-        stars,
-        xpEarned: currentLevel.experience_reward
-      });
-      setShowLevelComplete(true);
-    } catch (error) {
-      console.error('Error completing level:', error);
-    }
-  }, [user, sessionId, currentLevel, score, snacks, detection, levelNumber, gameStartTime, refreshProfile]);
+  // Initialize game
+  const startGame = useCallback(() => {
+    setIsPlaying(true);
+    setPlayerPos({ x: 100, y: 500 });
+    setIsHiding(false);
+    setTimeRemaining(60);
+    setDetection(0);
+    setScore(0);
+    
+    // Spawn snacks
+    const newSnacks: Snack[] = [
+      { id: 1, position: { x: 200, y: 150 }, rarity: 'common', collected: false, value: 10 },
+      { id: 2, position: { x: 400, y: 300 }, rarity: 'uncommon', collected: false, value: 25 },
+      { id: 3, position: { x: 600, y: 200 }, rarity: 'rare', collected: false, value: 50 },
+      { id: 4, position: { x: 300, y: 450 }, rarity: 'legendary', collected: false, value: 100 },
+      { id: 5, position: { x: 650, y: 450 }, rarity: 'common', collected: false, value: 10 },
+    ];
+    setSnacks(newSnacks);
+    
+    // Spawn NPCs
+    const newNPCs: NPC[] = [
+      { id: 1, position: { x: 400, y: 200 }, type: 'human', state: 'patrolling', direction: 1, patrolIndex: 0 },
+      { id: 2, position: { x: 600, y: 400 }, type: 'pet', state: 'patrolling', direction: 1, patrolIndex: 0 },
+    ];
+    setNPCs(newNPCs);
+    
+    lastUpdateTime.current = Date.now();
+    setShowMessage('Collect snacks and avoid detection!');
+    setTimeout(() => setShowMessage(null), 2000);
+  }, []);
 
   // Game loop
   useEffect(() => {
