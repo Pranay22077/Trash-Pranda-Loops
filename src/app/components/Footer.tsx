@@ -110,7 +110,7 @@ export function Footer() {
             © 2024 Trash Panda Loops. All rights reserved.
           </p>
           <p className="text-[var(--text-muted)] text-sm">
-            Made with ❤️ by Game Developers
+            Made with ❤️ by Pranay
           </p>
         </div>
       </div>

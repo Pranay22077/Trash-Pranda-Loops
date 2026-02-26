@@ -5,6 +5,7 @@ using namespace std;
 #include <string>
 #include <set>
 #include <map>
+#include <unordered_map>
 
 int main(){
 
@@ -219,31 +220,90 @@ int main(){
 
     // ======================================== Question 11 =====================================
 
-    map <int, string> mpp;
-    mpp[0] = "zero";
-    mpp[1] = "one";
-    for (auto x : mpp){
-        cout << x.first << " --> " << x.second  << endl;
-    }
-    cout << endl;
-    mpp.insert({2, "two"});
-    for (auto x : mpp){
-        cout << x.first << " --> " << x.second  << endl;
-    }
-    cout << endl;
+    // map <int, string> mpp;
+    // mpp[0] = "zero";
+    // mpp[1] = "one";
+    // for (auto x : mpp){
+    //     cout << x.first << " --> " << x.second  << endl;
+    // }
+    // cout << endl;
+    // mpp.insert({2, "two"});
+    // for (auto x : mpp){
+    //     cout << x.first << " --> " << x.second  << endl;
+    // }
+    // cout << endl;
 
-    auto it_f = mpp.find(2);
-    if (it_f != mpp.end()){
-        cout << "element found at index: " << distance(mpp.begin(), it_f) << " and value is " << it_f -> second;
-    }
-    cout << endl;
+    // auto it_f = mpp.find(2);
+    // if (it_f != mpp.end()){
+    //     cout << "element found at index: " << distance(mpp.begin(), it_f) << " and value is " << it_f -> second;
+    // }
+    // cout << endl;
 
-    mpp[2] = "TWO";
-    mpp.erase(1);
-    for (auto x : mpp){
-        cout << x.first << " --> " << x.second  << endl;
-    }
-    cout << endl;
+    // mpp[2] = "TWO";
+    // mpp.erase(1);
+    // for (auto x : mpp){
+    //     cout << x.first << " --> " << x.second  << endl;
+    // }
+    // cout << endl;
     
+    // map < pair<int, int> , string > mpp;
+    // mpp[make_pair(1,1)] = "Coordinate 1";
+    // mpp.insert({{2,2}, "coordinate 2"});
+    // mpp[{3,3}] = "Coordinate 3";
+
+    // for (auto x : mpp){
+    //     cout << x.first.first << ", " << x.first.second << " --> " << x.second << endl;
+    // }
+
+    // cout << mpp[{2,2}] << endl;
+
+
+    // =========================================== Question 12 =======================================
+    // map <int, string> mpp = {{10, "A"}, {20, "B"}, {30, "C"}, {40, "D"}, {50, "E"}};
+    // auto it_1 = mpp.find(20);
+    // auto it_2 = mpp.find(40);
+    // it_2++;
+    // mpp.erase(it_1, it_2);
+    // for (auto x : mpp){
+    //     cout << x.first << " --> " << x.second << endl;
+    // }
+    // cout << endl;
+
+    // ========================================== Question 13 ===============================================
+
+    // vector <int> vec = {2,7,11, 15};
+    // int target  = 9;
+    // unordered_map <int, int> mpp;
+    // for (auto x : vec){
+    //     mpp[x]++;
+    // }
+
+    // for (auto x : vec){
+    //     auto it = mpp.find(target - x);
+    //     if (it != mpp.end()){
+    //         cout << x << " and " << it -> first << endl;
+    //         break;
+    //     }
+    // }
+
+    // for (auto x : mpp){
+    //     cout << x.first << " --> " << x.second << endl;
+    // }
+    // cout << endl;
+
+    // ========================================== question 14 ==============================================
+
+    string s1 = "abccdeef";
+    unordered_map <char, int> mpp;
+    for (auto x : s1){
+        if (++mpp[x] == 2){
+            cout << "element " << x << " is the first to come twice";
+            break;
+        }
+    }
+
+
+
+
 
 }
